@@ -12,6 +12,5 @@ venv/
 
 # Secrets and Logs
 .env
-.example.env
 *.log
 .secret.env

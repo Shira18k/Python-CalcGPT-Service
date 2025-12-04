@@ -1,8 +1,11 @@
 # client.py
 import argparse, socket, json, sys
 
+from server import safe_eval_expr
+
 HOST = '127.0.0.1'
-PORT = 5555
+PORT = 5554
+
 
 def request(host: str, port: int, payload: dict) -> dict:
     """Send a single JSON-line request and return a single JSON-line response."""
@@ -23,7 +26,6 @@ def request(host: str, port: int, payload: dict) -> dict:
 
 def run_client_interactive(s: socket.socket):
     while True:
-        # הצגת האפשרויות:
         print("\n which mode? ")
         print("1. Calc ")
         print("2. GPT ")
@@ -32,11 +34,11 @@ def run_client_interactive(s: socket.socket):
         choice = input("your choice: ")
 
         if choice == '3':
-            break  # יציאה מהלולאה וסגירת החיבור
+            break
 
         elif choice == '1':
             mode = "calc"
-            # קבלת הקלט החופשי עבור ה-expr
+
             print("\n which expression?")
             print("1. 1+1+1*100")
             print("2. 2^6")
@@ -57,9 +59,13 @@ def run_client_interactive(s: socket.socket):
                 user_expr = "2**6"
             if choice_calc == '3':
                 user_expr = "4**0.5"
-            if choice_calc == '4':
 
                 user_expr = input("your choice: ")
+
+            if choice_calc == '4':
+                user_expr = input("which exp? ")
+                num = safe_eval_expr(user_expr) #float
+                user_expr = str(num)
 
             if user_expr is None:
                 print("Invalid choice or empty expression.")
@@ -155,7 +161,7 @@ if __name__ == '__main__':
             s.connect((HOST, PORT))
             print(f"[client] Connected to {HOST}:{PORT}")
 
-            run_client_interactive(s)  # העבירי את הסוקט!
+            run_client_interactive(s)
 
         except ConnectionRefusedError:
             print("Error: Could not connect to the server. Is server.py running?")

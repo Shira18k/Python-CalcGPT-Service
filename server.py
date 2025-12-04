@@ -16,7 +16,7 @@ import argparse, socket, json, time, threading, math, os, ast, operator, collect
 from typing import Any, Dict
 
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
-DOTENV_PATH = os.path.join(BASEDIR, '.example.env')
+DOTENV_PATH = os.path.join(BASEDIR, '.secret.env')
 
 #להתעכב עליו
 load_dotenv(DOTENV_PATH, override=True)
