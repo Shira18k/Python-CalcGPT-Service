@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+.virtualenvs/
+.direnv/
+
+# Secrets and Logs
+.env
+.example.env
+*.log
+.secret.env
