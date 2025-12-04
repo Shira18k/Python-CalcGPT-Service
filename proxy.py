@@ -93,9 +93,13 @@ def handle(client_socket, server_host, server_port, cache: LRUCache): # the name
                 break
             except Exception as e:
                 print(f"[proxy] Error reading client request: {e}")
+                #now it's ok to break because we have no msg
                 break
+
             cache_key = json.dumps(msg, sort_keys=True)
+            # get the relevant part from msg
             options = msg.get("options", {})
+            # put the part in get to see if they have a match
             use_cache = bool(options.get("cache", True))
             #if found the msg in cache
             if use_cache:
