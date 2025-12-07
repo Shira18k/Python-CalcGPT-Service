@@ -15,13 +15,17 @@ from dotenv import load_dotenv
 import argparse, socket, json, time, threading, math, os, ast, operator, collections
 from typing import Any, Dict
 
+#ADD
+#- Setting an environment variable for secure use of gpt access code
+#- Creating a path to a project
+#- Creating a path from 'BASEDIR' to our secret file
+#- Put the password at the system - ready for using
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 DOTENV_PATH = os.path.join(BASEDIR, '.secret.env')
 
-#להתעכב עליו
 load_dotenv(DOTENV_PATH, override=True)
-# ----------------------------------------------------
 
+#- Take the key value and use it to get access
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 if not openai.api_key:
@@ -29,6 +33,7 @@ if not openai.api_key:
     print("FATAL: OPENAI_API_KEY not found. GPT calls will fail.")
 
 # ---------------- LRU Cache (simple) ----------------
+# NOTHING HAS CHANGED
 class LRUCache:
     """Minimal LRU cache based on OrderedDict."""
     # the constructor in python (like in java)
@@ -51,6 +56,7 @@ class LRUCache:
             self._d.popitem(last=False)
 
 # ---------------- Safe Math Eval (no eval) ----------------
+# NOTHING HAS CHANGED
 _ALLOWED_FUNCS = {
     "sin": math.sin, "cos": math.cos, "tan": math.tan, "sqrt": math.sqrt,
     "log": math.log, "exp": math.exp, "max": max, "min": min, "abs": abs,
@@ -62,6 +68,7 @@ _ALLOWED_OPS = {
     ast.UAdd: operator.pos, ast.FloorDiv: operator.floordiv, ast.Mod: operator.mod,
 }
 
+# NOTHING HAS CHANGED
 def _eval_node(node):
     """Evaluate a restricted AST node safely."""
     if isinstance(node, ast.Constant):
@@ -85,12 +92,18 @@ def _eval_node(node):
         return _ALLOWED_FUNCS[node.func.id](*args)
     raise ValueError("illegal expression")
 
+# NOTHING HAVE CHANGED
 def safe_eval_expr(expr: str) -> float:
     """Parse and evaluate the expression safely using ast (no eval)."""
     tree = ast.parse(expr, mode="eval")
     return float(_eval_node(tree.body))
 
 # ---------------- GPT Call (stub by default) ----------------
+# ADD
+#- Connect to the AI serve
+#- Take the first  answer
+#- Return to msg part
+#- Treat in exceptions
 def call_gpt(prompt: str) -> str:
     """
     Stub for GPT call — returns a placeholder string.
@@ -101,12 +114,13 @@ def call_gpt(prompt: str) -> str:
         return "[GPT Error] API Key is missing."
 
     try:
-        #connect to AI
+        # connect to AI
+        # defined the answer
         response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",  # המודל שנבחר
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}] ,
-            temperature=0.7,  # רמת יצירתיות
-            max_tokens=150,  # מגביל את אורך התשובה
+            temperature=0.7,
+            max_tokens=150,
         )
         # take just the inf
         if response.choices:
@@ -119,6 +133,7 @@ def call_gpt(prompt: str) -> str:
         return f"GPT API Error: {e}"
 
 # ---------------- Server core ----------------
+# NOTHING HAS CHANGED
 def handle_request(msg: Dict[str, Any], cache: LRUCache) -> Dict[str, Any]:
     #the parts for JSON format
     mode = msg.get("mode")
@@ -157,6 +172,7 @@ def handle_request(msg: Dict[str, Any], cache: LRUCache) -> Dict[str, Any]:
     except Exception as e:
         return {"ok": False, "error": f"Server error: {e}"}
 
+# NOTHING HAS CHANGED
 def serve(host: str, port: int, cache_size: int):
     cache = LRUCache(cache_size)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -168,6 +184,8 @@ def serve(host: str, port: int, cache_size: int):
             conn, addr = s.accept()
             threading.Thread(target=handle_client, args=(conn, addr, cache), daemon=True).start()
 
+#HAS CHANGED
+#- Remove all 'break' to allow persistent connection
 def handle_client(conn: socket.socket, addr, cache: LRUCache):
     with conn:
         try:
@@ -191,6 +209,7 @@ def handle_client(conn: socket.socket, addr, cache: LRUCache):
             except Exception:
                 pass
 
+#NOTHING HAS CHANGED
 def main():
 
         ap = argparse.ArgumentParser(description="JSON TCP server (calc/gpt) — student skeleton")

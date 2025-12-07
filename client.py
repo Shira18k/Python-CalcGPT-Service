@@ -3,10 +3,12 @@ import argparse, socket, json, sys
 
 from server import safe_eval_expr
 
+#ADD
+#- Defined the host (local) & the port (of proxy)
 HOST = '127.0.0.1'
 PORT = 5554
 
-
+#NOTHING HAS CHANGED
 def request(host: str, port: int, payload: dict) -> dict:
     """Send a single JSON-line request and return a single JSON-line response."""
     data = (json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8")
@@ -23,7 +25,9 @@ def request(host: str, port: int, payload: dict) -> dict:
                 return json.loads(line.decode("utf-8"))
     return {"ok": False, "error": "No response"}
 
-
+#ADD
+#- Allow the client choose options of request from a list
+#- Put the choice in the right part of the request in JSON format
 def run_client_interactive(s: socket.socket):
     while True:
         print("\n which mode? ")
@@ -82,13 +86,22 @@ def run_client_interactive(s: socket.socket):
             data_payload = {"prompt": user_prompt}
             msg = {"mode": mode, "data": data_payload}
 
-
+            # use the function that take msg and receive an answer
             send_and_receive(s, msg)
 
         else:
             print("illegal , try again:( ")
             continue
 
+#ADD
+#- Allow the client sending many request - until he decides to finish
+#- Take the msg(the client choice) and convert to JSON
+#- Convert to binary string (for running)
+#- Defined infinity call loop and put the parts of info in a buffer
+#- Read the info
+#- Check the request
+#- Take the relevant part of the request - convert to JSON and after to dict (what the client see)
+#- Take care of exceptions
 
 def send_and_receive(s: socket.socket, msg: dict):
     request_data = json.dumps(msg) + "\n"
@@ -130,8 +143,7 @@ def send_and_receive(s: socket.socket, msg: dict):
         print(f"[client] An unexpected error occurred: {e}")
         return None
 
-
-
+# NOTHING HAS CHANGED
 def main():
     ap = argparse.ArgumentParser(description="Client (calc/gpt over JSON TCP)")
     ap.add_argument("--host", default="127.0.0.1")
@@ -155,13 +167,16 @@ def main():
     print(json.dumps(resp, ensure_ascii=False, indent=2))
 
 
+# HAS CHANGED
+#- Make the connection to server be infinity by keeping the socket open until the client decides to close it.
 if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.connect((HOST, PORT))
             print(f"[client] Connected to {HOST}:{PORT}")
 
+            #after connect - send the request and get answer
             run_client_interactive(s)
 
         except ConnectionRefusedError:
-            print("Error: Could not connect to the server. Is server.py running?")
+            print("Error: Could not connect to the server")

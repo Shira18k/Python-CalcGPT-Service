@@ -1,17 +1,13 @@
 # proxy.py
 ""
 
-import argparse, socket, json, time, threading, math, os, ast, operator, collections
+import argparse, socket, json, time, threading
 
+#ADD
 from collections import OrderedDict
-from server import handle_client
 
-#!
-FAULT_RATE = 0.1       # 10% chance of dropping packets
-MIN_LATENCY = 0.0      # Minimum latency in seconds
-MAX_LATENCY = 0.5      # Maximum latency in seconds
-
-
+#ADD
+#- Allow proxy to use in cache(like in server) - for save in action and give more quik service
 class LRUCache:
     def __init__(self, capacity = 128):
         self.capacity = capacity
@@ -32,41 +28,28 @@ class LRUCache:
             if len(self.cache) > self.capacity :
                 self.cache.popitem(last=False)
 
+#ADD
+#- Substitute 'pipe' - was "blind" and now need to be like "client" to server
+#- While the data legal - put in buffer
+#- If finished - return in the right format
+#- Take care of exceptions
 
-# def pipe(src, dst): #read from board
-#
-#     #! add dir for print -the fun for getting the inf
-#     """Bi-directional byte piping helper."""
-#     try:
-#         while True:
-#             data = src.recv(4096)
-#             if not data:
-#                 break
-#             dst.sendall(data)
-#     except Exception as e:
-#             print(f"[proxy] server not responding: {e}")
-#             #?
-#     finally:
-#         try:
-#             dst.shutdown(socket.SHUT_WR)
-#         except:
-#             pass
 def _recv_json_line(sock: socket.socket) -> dict:
     """Read a full JSON line (ending with \n) from the socket."""
-    raw = b""
+    buffer = b""
     while True:
+        #can contain more cause his "request" for most, more complicated than the client's
         chunk = sock.recv(4096)
         if not chunk:
             raise ConnectionResetError("Client closed connection")
-        raw += chunk
-        if b"\n" in raw:
-            line, _, _ = raw.partition(b"\n")
+        buffer += chunk
+        if b"\n" in buffer:
+            line, _, _ = buffer.partition(b"\n")
             return json.loads(line.decode("utf-8"))
 
-
-#! - the part "proxy"
+#ADD
+#like in server - this part give the service for client
 def proxy_server(host: str, port: int, server_host, server_port):
-
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((host, port))
@@ -74,13 +57,18 @@ def proxy_server(host: str, port: int, server_host, server_port):
         print(f"[Proxy] listening on {host}:{port}")
         print(f"[proxy] Forwarding to {server_host}:{server_port}")
         while True:
-            # see if that what accepted
-            client_socket, addr = s.accept()
+            #if this is what expect to get.
+            c, addr = s.accept()
             print(f"[proxy] New client: {addr}")
-            # what with the cache - important...
-            threading.Thread(target=handle, args=(client_socket, server_host, server_port), daemon=True).start()
+            threading.Thread(target=handle, args=(c, server_host, server_port), daemon=True).start()
 
-
+# HAS CHANGED
+#from static mode - now proxy can give service to client without server
+#- Get the request from client - the "while true" keeping on persistent connection
+#- Checking by finding match between unique key to the request -
+#- If true sending the saved answer, else become like "client" for server
+#- The server return answer and proxy save it and pass to client
+#- Take care of exceptions
 def handle(client_socket, server_host, server_port, cache: LRUCache): # the name mmore clear
     with client_socket:
         while True:
@@ -99,7 +87,7 @@ def handle(client_socket, server_host, server_port, cache: LRUCache): # the name
             cache_key = json.dumps(msg, sort_keys=True)
             # get the relevant part from msg
             options = msg.get("options", {})
-            # put the part in get to see if they have a match
+            # put the part in 'get' to see if they have a match
             use_cache = bool(options.get("cache", True))
             #if found the msg in cache
             if use_cache:
@@ -143,7 +131,7 @@ def handle(client_socket, server_host, server_port, cache: LRUCache): # the name
                 resp = {"ok": False, "error": f"Proxy communication error: {e}"}
                 client_socket.sendall((json.dumps(resp, ensure_ascii=False) + "\n").encode("utf-8"))
                 continue
-
+#NOTHING HAS CHANGED
 def main():
     ap = argparse.ArgumentParser(description="Transparent TCP proxy (optional)")
     ap.add_argument("--listen-host", default="127.0.0.1")
