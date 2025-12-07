@@ -1,5 +1,4 @@
 # proxy.py
-""
 
 import argparse, socket, json, time, threading
 
@@ -33,7 +32,6 @@ class LRUCache:
 #- While the data legal - put in buffer
 #- If finished - return in the right format
 #- Take care of exceptions
-
 def _recv_json_line(sock: socket.socket) -> dict:
     """Read a full JSON line (ending with \n) from the socket."""
     buffer = b""

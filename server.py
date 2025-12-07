@@ -5,11 +5,11 @@ Enabling real GPT calls (optional):
 2. Create a .env file with OPENAI_API_KEY=... .
 3. Replace call_gpt() in server.py with the real implementation shown in the comments, or keep the stub.
 '''
+
 # for gpt
 
-import os
 import openai
-#environment variables....
+
 from dotenv import load_dotenv
 
 import argparse, socket, json, time, threading, math, os, ast, operator, collections
@@ -21,7 +21,7 @@ from typing import Any, Dict
 #- Creating a path from 'BASEDIR' to our secret file
 #- Put the password at the system - ready for using
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
-DOTENV_PATH = os.path.join(BASEDIR, '.secret.env')
+DOTENV_PATH = os.path.join(BASEDIR, '.env')
 
 load_dotenv(DOTENV_PATH, override=True)
 
@@ -92,14 +92,13 @@ def _eval_node(node):
         return _ALLOWED_FUNCS[node.func.id](*args)
     raise ValueError("illegal expression")
 
-# NOTHING HAVE CHANGED
+# NOTHING HAS CHANGED
 def safe_eval_expr(expr: str) -> float:
     """Parse and evaluate the expression safely using ast (no eval)."""
     tree = ast.parse(expr, mode="eval")
     return float(_eval_node(tree.body))
-
 # ---------------- GPT Call (stub by default) ----------------
-# ADD
+# HAS CHANGED
 #- Connect to the AI serve
 #- Take the first  answer
 #- Return to msg part
@@ -185,7 +184,7 @@ def serve(host: str, port: int, cache_size: int):
             threading.Thread(target=handle_client, args=(conn, addr, cache), daemon=True).start()
 
 #HAS CHANGED
-#- Remove all 'break' to allow persistent connection
+#- Remove the last 'break' to allow persistent connection
 def handle_client(conn: socket.socket, addr, cache: LRUCache):
     with conn:
         try:

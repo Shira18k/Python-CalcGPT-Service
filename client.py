@@ -26,7 +26,7 @@ def request(host: str, port: int, payload: dict) -> dict:
     return {"ok": False, "error": "No response"}
 
 #ADD
-#- Allow the client choose options of request from a list
+#- Allow the client choose **without a break** options of request from a list
 #- Put the choice in the right part of the request in JSON format
 def run_client_interactive(s: socket.socket):
     while True:
@@ -95,12 +95,10 @@ def run_client_interactive(s: socket.socket):
 
 #ADD
 #- Allow the client sending many request - until he decides to finish
-#- Take the msg(the client choice) and convert to JSON
-#- Convert to binary string (for running)
-#- Defined infinity call loop and put the parts of info in a buffer
+#- Take the msg (the client choice) and convert to JSON and then to binary - for server
+#- Defined infinity call loop and put the parts of respons in a buffer - to get the all answer
 #- Read the info
-#- Check the request
-#- Take the relevant part of the request - convert to JSON and after to dict (what the client see)
+#- Take the relevant part of the response - convert to JSON and after to dict (what the client see)
 #- Take care of exceptions
 
 def send_and_receive(s: socket.socket, msg: dict):

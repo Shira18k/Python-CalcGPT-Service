@@ -13,4 +13,3 @@ venv/
 # Secrets and Logs
 .env
 *.log
-.secret.env
